@@ -41,6 +41,7 @@
   "private": true,
   "license": "UNLICENSED",
   "devDependencies": {
+    "gh-pages": "^1.0.0",
     "open-browser-webpack-plugin": "0.0.5"
   }
 }
