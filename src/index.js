@@ -12,6 +12,9 @@ const { Howl } = require('howler')
 // array of {start, end, text, id}
 const chunks = parse(require('./stories/threepigs/transcript.txt'))
 
+// the click is played after a chunk is read so that the
+// listener knows the chunk is finished rather than a pause
+// in the audio.
 const click1 = new Howl({
     src: [require('./sounds/click1.mp3')],
     preload: true,
@@ -32,6 +35,7 @@ const sound = new Howl({
     })(),
 })
 
+// we're ready to roll once the main audio mp3 loads
 sound.once('load', () => {
     onLoad()
 })
@@ -56,7 +60,7 @@ function onLoad() {
                 click1.play()
                 app.ports.endOfChunk.send(null)
             },
-            // only play click for latest sound
+            // only play click for latest sound.
             // without this, pressing next a bunch of times
             // enqueues multiple clicks
             soundId

@@ -47,6 +47,34 @@ El cerdito preguntó respetuosamente: "¿Podría por favor darme esa paja, para 
 
 Paragraphs are demarcated with double-spacing and the app renders them as such.
 
+Each chunk can be timestamped with just a starting point:
+
+```
+0:36
+El primer cerdito decidió ir al sur.
+0:42
+Encontró a un granjero en el camino que estaba llevando un atado de paja.
+...
+```
+
+This will assume that the first chunk lasts `0:36-0:42`.
+
+Or you can provide a timestamp range for a chunk:
+
+```
+0:36-0:40
+El primer cerdito decidió ir al sur.
+0:42
+Encontró a un granjero en el camino que estaba llevando un atado de paja.
+...
+```
+
+In the above example, the app will skip the `0:40-0:42` range between the chunks.
+This lets you trim out spaces in the audio where there are no vocals between
+chunks.
+
+The final chunk in the transcript file must be a range.
+
 ## Development
 
 Start the hot-reloading webpack dev server:
