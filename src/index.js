@@ -43,7 +43,8 @@ sound.once('load', () => {
 function onLoad() {
     const app = Elm.Main.embed(mountNode, {
         chunks,
-        debug: window.localStorage.getItem('debug') !== 'false',
+        // default to false
+        debug: window.localStorage.getItem('debug') === 'true',
     })
 
     app.ports.saveToLocalStorage.subscribe(([key, value]) => {
