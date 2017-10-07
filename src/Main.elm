@@ -7,15 +7,23 @@ import Util
 import SelectList exposing (SelectList)
 import Keyboard
 import List.Extra
+import Json.Encode
 
 
--- PORTS
+-- PORTS TO JAVASCRIPT
 
 
 port playRange : ( Int, Int ) -> Cmd msg
 
 
 port stopSound : () -> Cmd msg
+
+
+port saveToLocalStorage : ( String, Json.Encode.Value ) -> Cmd msg
+
+
+
+-- PORTS FROM JAVASCRIPT
 
 
 port endOfChunk : (() -> msg) -> Sub msg
@@ -31,6 +39,7 @@ type alias Chunk =
     , end : Int
     , paragraph : Bool
     , id : Int
+    , line : Int
     }
 
 
@@ -38,6 +47,7 @@ type alias Model =
     { chunks : SelectList Chunk
     , playing : Bool
     , playedOnce : Bool
+    , debug : Bool
     }
 
 
@@ -58,6 +68,8 @@ init flags =
                 False
           , chunks =
                 chunks
+          , debug =
+                flags.debug
           }
         , Cmd.none
         )
@@ -75,6 +87,7 @@ type Msg
     | Back
     | Next
     | KeyPress Keyboard.KeyCode
+    | ToggleDebug Bool
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -82,6 +95,13 @@ update msg model =
     case msg of
         NoOp ->
             ( model, Cmd.none )
+
+        ToggleDebug debug ->
+            ( { model
+                | debug = debug
+              }
+            , saveToLocalStorage ( "debug", Json.Encode.bool (debug) )
+            )
 
         KeyPress code ->
             case code of
@@ -176,8 +196,8 @@ update msg model =
 -- VIEW
 
 
-viewChunk : Int -> Chunk -> Html Msg
-viewChunk currId { start, text, id } =
+viewChunk : Bool -> Int -> Chunk -> Html Msg
+viewChunk debug currId { start, text, id, line } =
     Html.span
         [ Html.Attributes.classList
             [ ( "chunk", True )
@@ -185,15 +205,23 @@ viewChunk currId { start, text, id } =
             ]
         , Html.Events.onClick (PlayById id)
         ]
-        [ Html.text text
+        [ if debug then
+            Html.span
+                [ Html.Attributes.class "line-number"
+                ]
+                [ Html.text (toString line)
+                ]
+          else
+            Html.text ""
+        , Html.text text
         ]
 
 
-viewParagraph : Int -> List Chunk -> Html Msg
-viewParagraph currId chunks =
+viewParagraph : Bool -> Int -> List Chunk -> Html Msg
+viewParagraph debug currId chunks =
     Html.p
         []
-        (List.intersperse (Html.text " ") <| List.map (viewChunk currId) chunks)
+        (List.intersperse (Html.text " ") <| List.map (viewChunk debug currId) chunks)
 
 
 viewControlBar : Model -> Html Msg
@@ -261,15 +289,15 @@ view model =
                     []
                     [ Html.div
                         []
-                        (List.map (viewParagraph currId) paragraphs)
-                    , viewFooter
+                        (List.map (viewParagraph model.debug currId) paragraphs)
+                    , viewFooter model.debug
                     ]
             ]
         ]
 
 
-viewFooter : Html Msg
-viewFooter =
+viewFooter : Bool -> Html Msg
+viewFooter debug =
     Html.footer
         []
         [ Html.span
@@ -289,6 +317,21 @@ viewFooter =
                 [ Html.Attributes.href "http://www.thespanishexperiment.com/stories/threepigs" ]
                 [ Html.text "thespanishexperiment.com" ]
             ]
+        , Html.div
+            []
+            [ Html.label
+                [ Html.Attributes.style [ ( "cursor", "pointer" ) ]
+                , Html.Attributes.class "debug-label"
+                ]
+                [ Html.text "Debug: "
+                , Html.input
+                    [ Html.Attributes.type_ "checkbox"
+                    , Html.Attributes.checked debug
+                    , Html.Events.onCheck ToggleDebug
+                    ]
+                    []
+                ]
+            ]
         ]
 
 
@@ -306,6 +349,7 @@ subscriptions model =
 
 type alias Flags =
     { chunks : List Chunk
+    , debug : Bool
     }
 
 

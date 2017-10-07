@@ -24,6 +24,13 @@ button:hover {
     }
 }
 
+.debug-label,
+.debug-label input {
+    &:hover {
+        cursor: pointer;
+    }
+}
+
 .control-bar {
     position: fixed;
     top: 25px;
@@ -41,6 +48,13 @@ button:hover {
         @extend .spin;
         color: #111;
     }
+}
+
+.line-number {
+    display: inline-block;
+    margin-right: 5px;
+    font-weight: bold;
+    font-family: monospace;
 }
 
 .spin {
